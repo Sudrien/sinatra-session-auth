@@ -11,7 +11,7 @@ module Sinatra
       end 
 
       module InstanceMethods
-        def password=(pass, test)
+        def password=(pass)
           self.salt = SecureRandom.base64(20)
           self.hashed_password = BCrypt::Password.create(self.salt, pass)
         end
