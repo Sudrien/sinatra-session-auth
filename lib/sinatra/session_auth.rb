@@ -24,7 +24,12 @@ module Sinatra
 
         def authenticate(args={})
           login, pass = args[:login], args[:password]
-          u = self.first(:login => login)
+          u = nil
+          begin
+            u = self.first(:login => login)
+          rescue
+            u = self.where(:login => login).first
+          end
           return nil if u.nil?
           return u if self.encrypt(pass, u.salt) == u.hashed_password
           nil
