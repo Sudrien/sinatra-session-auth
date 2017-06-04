@@ -1,5 +1,6 @@
 require 'date'
-require 'digest/sha1'
+require 'securerandom'
+require 'bcrypt'
 
 module Sinatra
   module SessionAuth
@@ -11,15 +12,15 @@ module Sinatra
 
       module InstanceMethods
         def password=(pass)
-          @password = pass
-          self.salt = self.class.random_string(10) unless self.salt
-          self.hashed_password = self.class.encrypt(@password, self.salt)
+          password = pass
+          self.salt = SecureRandom.base64(20)
+          self.hashed_password = self.class.encrypt(password, self.salt)
         end
       end
 
       module ClassMethods
         def encrypt(pass, salt)
-          Digest::SHA1.hexdigest(pass + salt)
+          BCrypt::Password.create(salt + pass)
         end
 
         def authenticate(args={})
@@ -35,12 +36,6 @@ module Sinatra
           nil
         end
 
-        def random_string(len)
-          chars = ("a".."z").to_a + ("A".."Z").to_a + ("0".."9").to_a
-          str = ""
-          1.upto(len) { |i| str << chars[rand(chars.size-1)] }
-          return str
-        end
       end
     end
     
