@@ -13,21 +13,20 @@ module Sinatra
       module InstanceMethods
         def password=(pass)
           self.salt = SecureRandom.base64(20)
-          self.hashed_password = BCrypt::Password.create(self.salt, pass)
+          self.hashed_password = BCrypt::Password.create(self.salt + pass)
         end
       end
 
       module ClassMethods
         def authenticate(args={})
-          login, pass = args[:login], args[:password]
           u = nil
           begin
-            u = self.first(:login => login)
+            u = self.first(:login => args[:login])
           rescue
-            u = self.where(:login => login).first
+            u = self.where(:login => args[:login]).first
           end
           return nil if u.nil?
-          return u if BCrypt::Password.new(u.hashed_password) == pass + u.salt
+          return u if BCrypt::Password.new(u.hashed_password) == u.salt + args[:password]
           nil
         end
 
